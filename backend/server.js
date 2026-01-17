@@ -32,3 +32,24 @@ app.post("/tasks", (req, res) => {
   tasks.push(newTask);
   res.status(201).json(newTask);
 });
+
+app.put("/tasks/:id", (req, res) => {
+  const id = parseInt(req.params.id);
+
+  const task = tasks.find(task => task.id === id);
+
+  if (!task) {
+    return res.status(404).json({ message: "Tarea no encontrada" });
+  }
+
+  if (req.body.title !== undefined) {
+    task.title = req.body.title;
+  }
+
+  if (req.body.completed !== undefined) {
+    task.completed = req.body.completed;
+  }
+
+  res.json(task);
+});
+
