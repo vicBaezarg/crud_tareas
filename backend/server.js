@@ -1,3 +1,5 @@
+const db = require("./db/database");
+
 const express = require("express");
 const app = express();
 
@@ -19,8 +21,18 @@ app.listen(PORT, () => {
 });
 
 app.get("/tasks", (req, res) => {
+  const rows = db.prepare("SELECT * FROM tasks").all();
+
+  const tasks = rows.map(task => ({
+    id: task.id,
+    title: task.title,
+    completed: Boolean(task.completed)
+  }));
+
   res.json(tasks);
 });
+
+  
 
 app.post("/tasks", (req, res) => {
   const newTask = {
