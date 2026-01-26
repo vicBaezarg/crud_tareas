@@ -58,24 +58,37 @@ app.post("/tasks", (req, res) => {
 
 
 app.put("/tasks/:id", (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
+  const { title, completed } = req.body;
 
-  const task = tasks.find(task => task.id === id);
+  const task = db.prepare(
+    "SELECT * FROM tasks WHERE id = ?"
+  ).get(id);
 
   if (!task) {
     return res.status(404).json({ message: "Tarea no encontrada" });
   }
 
-  if (req.body.title !== undefined) {
-    task.title = req.body.title;
+  const newTitle = title !== undefined ? title : task.title;
+
+  let newCompleted = task.completed;
+  if (completed !== undefined) {
+    newCompleted = completed ? 1 : 0;
   }
 
-  if (req.body.completed !== undefined) {
-    task.completed = req.body.completed;
-  }
+  db.prepare(`
+    UPDATE tasks
+    SET title = ?, completed = ?
+    WHERE id = ?
+  `).run(newTitle, newCompleted, id);
 
-  res.json(task);
+  res.status(200).json({
+    id,
+    title: newTitle,
+    completed: Boolean(newCompleted)
+  });
 });
+
 
 app.delete("/tasks/:id", (req, res) => {
   const id = parseInt(req.params.id);
