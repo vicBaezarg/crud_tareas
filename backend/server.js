@@ -91,15 +91,18 @@ app.put("/tasks/:id", (req, res) => {
 
 
 app.delete("/tasks/:id", (req, res) => {
-  const id = parseInt(req.params.id);
+  const id = Number(req.params.id);
 
-  const taskIndex = tasks.findIndex(task => task.id === id);
 
-  if (taskIndex === -1) {
+  const task = db.prepare(
+    "SELECT * FROM tasks WHERE id = ?"
+  ).get(id);
+  
+  if (!task) {
     return res.status(404).json({ message: "Tarea no encontrada" });
   }
 
-  tasks.splice(taskIndex, 1);
+  db.prepare(`DELETE FROM tasks WHERE id = ?`).run(id);
 
   res.status(204).send();
 });
