@@ -3,10 +3,10 @@ const db = require("./db/database");
 const express = require("express");
 const app = express();
 
-let tasks = [
+/* let tasks = [
   { id: 1, title: "Aprender Express", completed: false },
   { id: 2, title: "Hacer CRUD", completed: false }
-];
+]; */
 
 app.use(express.json());
 
@@ -35,15 +35,27 @@ app.get("/tasks", (req, res) => {
   
 
 app.post("/tasks", (req, res) => {
+  const { title, completed } = req.body;
+
+  if (!title) {
+    return res.status(400).json({ message: "El título es obligatorio" });
+  }
+
+  const result = db
+    .prepare(
+      "INSERT INTO tasks (title, completed) VALUES (?, ?)"
+    )
+    .run(title, completed ? 1 : 0);
+
   const newTask = {
-    id: tasks.length + 1,
-    title: req.body.title,
-    completed: req.body.completed
+    id: result.lastInsertRowid,
+    title,
+    completed: Boolean(completed)
   };
 
-  tasks.push(newTask);
   res.status(201).json(newTask);
 });
+
 
 app.put("/tasks/:id", (req, res) => {
   const id = parseInt(req.params.id);
